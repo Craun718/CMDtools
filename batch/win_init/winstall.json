@@ -230,10 +230,10 @@
                     "Id": "Microsoft.VCLibs.Desktop.14"
                 },
                 {
-                    "Id": "Microsoft.VCLibs.Desktop.14"
+                    "Id": "Microsoft.WindowsTerminal"
                 },
                 {
-                    "Id": "Microsoft.WindowsTerminal"
+                    "Id": "astral-sh.uv"
                 }
             ],
             "SourceDetails": {
