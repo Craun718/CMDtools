@@ -55,14 +55,20 @@ sudo apt-get install -y openjdk-21-jdk
 echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> ~/.bashrc
 echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
 
-# 5. 安装 Python 3.10
-echo "[5/12] 安装 Python 3.10..."
-sudo apt-get install -y python3.10 python3.10-dev python3-pip
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
-sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+# 5. 安装 Python 3.10 (使用 uv)
+echo "[5/12] 安装 Python 3.10 (使用 uv)..."
+pip install uv --trusted-host mirrors.tencentyun.com
+export PATH="$HOME/.local/bin:$PATH"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+
+# 配置 uv 全局镜像 (腾讯云内网)
+echo "[5.1/12] 配置 uv 全局镜像..."
+uv python install 3.10
+uv config set global.python-preference only-managed
+uv config set global.index-url http://mirrors.tencentyun.com/pypi/simple
 
 # 配置 pip 镜像 (内网)
-echo "[5.1/12] 配置 pip 镜像..."
+echo "[5.2/12] 配置 pip 镜像..."
 pip config set global.index-url http://mirrors.tencentyun.com/pypi/simple
 pip config set global.trusted-host mirrors.tencentyun.com
 python -m pip install --upgrade pip
