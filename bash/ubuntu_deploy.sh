@@ -45,6 +45,7 @@ sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
   "registry-mirrors": ["https://mirror.ccs.tencentyun.com"]
 }
 EOF
+sudo systemctl daemon-reload
 sudo systemctl restart docker
 
 # 4. 安装 Java 21
@@ -55,26 +56,8 @@ sudo apt-get install -y openjdk-21-jdk
 echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> ~/.bashrc
 echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
 
-# 5. 安装 Python 3.10 (使用 uv)
-echo "[5/12] 安装 Python 3.10 (使用 uv)..."
-pip install uv --trusted-host mirrors.tencentyun.com
-export PATH="$HOME/.local/bin:$PATH"
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-
-# 配置 uv 全局镜像 (腾讯云内网)
-echo "[5.1/12] 配置 uv 全局镜像..."
-uv python install 3.10
-uv config set global.python-preference only-managed
-uv config set global.index-url http://mirrors.tencentyun.com/pypi/simple
-
-# 配置 pip 镜像 (内网)
-echo "[5.2/12] 配置 pip 镜像..."
-pip config set global.index-url http://mirrors.tencentyun.com/pypi/simple
-pip config set global.trusted-host mirrors.tencentyun.com
-python -m pip install --upgrade pip
-
-# 6. 安装 gcc, g++, clang
-echo "[6/12] 安装 gcc, g++, clang..."
+# 5. 安装 gcc, g++, clang
+echo "[5/12] 安装 gcc, g++, clang..."
 sudo apt-get install -y gcc g++ clang
 
 # 7. 安装 git
@@ -127,7 +110,7 @@ source "$HOME/.cargo/env"
 # 配置 Rust 镜像 (USTC)
 echo "[12.1/14] 配置 Rust 镜像..."
 mkdir -vp "${CARGO_HOME:-$HOME/.cargo}"
-cat >> "${CARGO_HOME:-$HOME/.cargo}/config.toml" << 'EOF'
+cat > "${CARGO_HOME:-$HOME/.cargo}/config.toml" << 'EOF'
 [source.crates-io]
 replace-with = 'ustc'
 [source.ustc]
@@ -136,8 +119,21 @@ registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
 index = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
 EOF
 
-# 13. 安装 Go 1.22
-echo "[13/14] 安装 Go 1.22..."
+# 13. 安装 Python 3.10 (使用 cargo 安装 uv，再用 uv 安装 python)
+echo "[13/14] 安装 Python 3.10..."
+cargo install --locked uv
+export PATH="$HOME/.cargo/bin:$PATH"
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+uv config set global.index-url http://mirrors.tencentyun.com/pypi/simple
+uv python install 3.10
+
+# 配置 pip 镜像 (内网)
+echo "[13.1/14] 配置 pip 镜像..."
+pip config set global.index-url http://mirrors.tencentyun.com/pypi/simple
+pip config set global.trusted-host mirrors.cloud.tencent.com
+
+# 14. 安装 Go 1.22
+echo "[14/16] 安装 Go 1.22..."
 GO_VERSION="1.22.0"
 wget -q "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -O /tmp/go.tar.gz
 sudo rm -rf /usr/local/go
@@ -150,13 +146,13 @@ echo 'export GOPATH=$HOME/go' >> ~/.bashrc
 echo 'export PATH=$GOPATH/bin:$PATH' >> ~/.bashrc
 
 # 配置 Go 镜像 (腾讯云内网)
-echo "[13.1/14] 配置 Go 镜像..."
+echo "[14.1/16] 配置 Go 镜像..."
 mkdir -p ~/go
 go env -w GOPROXY=http://mirrors.tencentyun.com/goproxy/,direct
 go env -w GOSUMDB=off
 
-# 14. 配置 Maven 镜像 (内网)
-echo "[14/14] 配置 Maven 镜像..."
+# 15. 配置 Maven 镜像 (内网)
+echo "[15/16] 配置 Maven 镜像..."
 mkdir -p ~/.m2
 cat > ~/.m2/settings.xml << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
