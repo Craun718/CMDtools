@@ -145,6 +145,7 @@ FORMULAE=(
     "yazi"
     "zig"
     "zsh"
+    "trash"
 )
 
 # macfuse is installed before formulae because ntfs-3g-mac depends on it.
